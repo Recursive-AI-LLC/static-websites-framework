@@ -73,3 +73,31 @@ import Handlebars from 'handlebars';
 
      await Promise.all(registrationPromises);
    }
+
+   // Initialize the template engine for development
+   export async function initTemplates() {
+     console.log('Initializing development template engine...');
+     
+     // Register all partials first
+     await registerAllPartials();
+
+     // Get the current page path
+     const pagePath = window.location.pathname;
+
+     // Determine which template to load based on the path
+     let templatePath;
+     let pageData = {};
+
+     if (pagePath === '/' || pagePath === '/index.html') {
+         templatePath = '/src/pages/home.html';
+         pageData = { title: 'Home Page' };
+     } else {
+         // Extract page name from path
+         const pageName = pagePath.split('/').pop().replace('.html', '');
+         templatePath = `/src/pages/${pageName}.html`;
+         pageData = { title: pageName.charAt(0).toUpperCase() + pageName.slice(1) };
+     }
+
+     // Render the page template
+     await renderTemplate('#app', templatePath, pageData);
+   }
