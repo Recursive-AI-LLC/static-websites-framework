@@ -36,6 +36,21 @@ import Handlebars from 'handlebars';
      }
    }
 
+   // Load JSON data file
+   async function loadJsonData(path) {
+     try {
+       const response = await fetch(path);
+       if (!response.ok) {
+         console.warn(`Could not load data file ${path}:`, response.statusText);
+         return {};
+       }
+       return await response.json();
+     } catch (error) {
+       console.warn(`Failed to load JSON data from ${path}:`, error);
+       return {};
+     }
+   }
+
    // Render a template with data
    export async function renderTemplate(elementSelector, templatePath, data = {}) {
      const targetElement = document.querySelector(elementSelector);
@@ -81,23 +96,31 @@ import Handlebars from 'handlebars';
      // Register all partials first
      await registerAllPartials();
 
+     // Load global data
+     const globalData = await loadJsonData('/src/data/global.json');
+
      // Get the current page path
      const pagePath = window.location.pathname;
 
-     // Determine which template to load based on the path
+     // Determine which template and data to load based on the path
      let templatePath;
-     let pageData = {};
+     let pageName;
 
      if (pagePath === '/' || pagePath === '/index.html') {
          templatePath = '/src/pages/home.html';
-         pageData = { title: 'Home Page' };
+         pageName = 'home';
      } else {
          // Extract page name from path
-         const pageName = pagePath.split('/').pop().replace('.html', '');
+         pageName = pagePath.split('/').pop().replace('.html', '');
          templatePath = `/src/pages/${pageName}.html`;
-         pageData = { title: pageName.charAt(0).toUpperCase() + pageName.slice(1) };
      }
 
+     // Load page-specific data
+     const pageData = await loadJsonData(`/src/data/${pageName}.json`);
+
+     // Merge global and page data (same as production build)
+     const templateData = { ...globalData, ...pageData };
+
      // Render the page template
-     await renderTemplate('#app', templatePath, pageData);
+     await renderTemplate('#app', templatePath, templateData);
    }
