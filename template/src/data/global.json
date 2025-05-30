@@ -1,0 +1,7 @@
+{
+  "siteName": "My Template Site",
+  "description": "A modern website built with Alpine.js, Tailwind CSS, and Vite",
+  "author": "Your Name",
+  "baseUrl": "https://example.com",
+  "defaultImage": "/assets/og-image.jpg"
+}
