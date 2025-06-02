@@ -4,6 +4,26 @@ import Handlebars from 'handlebars';
    const templateCache = {};
    const partialsRegistered = new Set();
 
+   // Register Handlebars helpers
+   function registerHelpers() {
+     // Helper for adding numbers (used in process steps, etc.)
+     Handlebars.registerHelper('add', function(a, b) {
+       return a + b;
+     });
+     
+     // Helper for equality comparison
+     Handlebars.registerHelper('eq', function(a, b) {
+       return a === b;
+     });
+     
+     // Helper for checking if string contains substring
+     Handlebars.registerHelper('contains', function(str, substring) {
+       return str && str.includes(substring);
+     });
+     
+     console.log('Registered Handlebars helpers: add, eq, contains');
+   }
+
    // Register a partial
    export async function registerPartial(name, path) {
      if (partialsRegistered.has(name)) return;
@@ -93,7 +113,10 @@ import Handlebars from 'handlebars';
    export async function initTemplates() {
      console.log('Initializing development template engine...');
      
-     // Register all partials first
+     // Register Handlebars helpers first
+     registerHelpers();
+     
+     // Register all partials
      await registerAllPartials();
 
      // Load global data

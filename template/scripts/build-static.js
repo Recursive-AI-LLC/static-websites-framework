@@ -66,6 +66,27 @@ function registerPartials() {
   });
 }
 
+
+// Register Handlebars helpers
+function registerHelpers() {
+  // Helper for adding numbers (used in process steps, etc.)
+  Handlebars.registerHelper('add', function(a, b) {
+    return a + b;
+  });
+  
+  // Helper for equality comparison
+  Handlebars.registerHelper('eq', function(a, b) {
+    return a === b;
+  });
+  
+  // Helper for checking if string contains substring
+  Handlebars.registerHelper('contains', function(str, substring) {
+    return str && str.includes(substring);
+  });
+  
+  console.log('Registered Handlebars helpers: add, eq, contains');
+}
+
 // Generate SEO meta tags for a page
 function generateMetaTags(pageData, globalData) {
   const siteName = globalData.siteName || 'My Website';
@@ -257,6 +278,9 @@ async function buildStaticSite() {
   
   // Register Handlebars partials
   registerPartials();
+  
+  // Register Handlebars helpers
+  registerHelpers();
   
   // Load global data
   const globalDataPath = path.join(config.dataDir, 'global.json');
