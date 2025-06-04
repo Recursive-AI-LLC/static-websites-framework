@@ -30,11 +30,15 @@ import Handlebars from 'handlebars';
      
      try {
        const response = await fetch(path);
+       if (!response.ok) {
+         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+       }
        const partialTemplate = await response.text();
        Handlebars.registerPartial(name, partialTemplate);
        partialsRegistered.add(name);
      } catch (error) {
        console.error(`Failed to load partial ${name} from ${path}:`, error);
+       throw error; // Re-throw so registerAllPartials can handle it appropriately
      }
    }
 
@@ -87,26 +91,34 @@ import Handlebars from 'handlebars';
 
    // Helper to register all partials in a directory
    export async function registerAllPartials() {
-     // This would typically load from a configuration or scan a directory
-     // For simplicity, we'll manually list partials here
-     const partials = [
-       { name: 'header', path: '/src/components/header.html' },
-       { name: 'footer', path: '/src/components/footer.html' },
-       { name: 'nav', path: '/src/components/nav.html' }
-     ];
+     // TRUE dynamic discovery using Vite's import.meta.glob()
+     // This scans the components directory at build time and finds all .html files
+     const componentModules = import.meta.glob('/src/components/*.html', { 
+       as: 'raw',
+       eager: false 
+     });
 
-     // Components are also registered as partials
-     const components = [
-       { name: 'card', path: '/src/components/card.html' },
-       { name: 'button', path: '/src/components/button.html' }
-     ];
-
-     const registrationPromises = [
-       ...partials.map(p => registerPartial(p.name, p.path)),
-       ...components.map(c => registerPartial(c.name, c.path))
-     ];
+     // Extract component names and register each one
+     const registrationPromises = Object.keys(componentModules).map(async (componentPath) => {
+       // Extract component name from path: '/src/components/header.html' -> 'header'
+       const componentName = componentPath.replace('/src/components/', '').replace('.html', '');
+       
+       try {
+         // Load the component content using the glob module
+         const componentContent = await componentModules[componentPath]();
+         
+         // Register the partial with Handlebars
+         Handlebars.registerPartial(componentName, componentContent);
+         partialsRegistered.add(componentName);
+         
+         console.log(`✓ Registered component: ${componentName}`);
+       } catch (error) {
+         console.error(`Failed to register component ${componentName}:`, error);
+       }
+     });
 
      await Promise.all(registrationPromises);
+     console.log(`Dynamic component registration complete - found ${Object.keys(componentModules).length} components`);
    }
 
    // Initialize the template engine for development
