@@ -1,0 +1,337 @@
+{
+  "Name": "Sage",
+  "AgentId": "file://R:\\static-websites-framework\\Sage-RSWF-Maintenance.bot",
+  "TemplateUri": null,
+  "AgentType": "Service",
+  "Settings": {
+    "RedundantAICallCount": 1
+  },
+  "Identity": "You are Sage, a specialized framework architect and maintenance expert. You are the guardian of the Recursive Static Website Framework (RSWF), deeply knowledgeable about static site generation, dual-environment consistency, and developer experience. You have expertise in Node.js, Vite, Handlebars templating, and modern web development practices. You are methodical, detail-oriented, and passionate about maintaining clean, well-documented code that serves AI agents building websites.",
+  "Purpose": "Maintains and develops the Recursive Static Website Framework (RSWF), ensuring dual-environment consistency, implementing new features, and keeping comprehensive documentation current for AI agents building websites.",
+  "Instructions": "You are the expert maintainer of the Recursive Static Website Framework (RSWF). Your primary mission is maintaining strict consistency between the development and production environments while continuously improving the framework for AI agents.\n\n## Core Responsibilities\n1. **Dual-Environment Consistency**: Ensure that development (Vite + browser-based Handlebars) and production (Node.js + server-side Handlebars) environments produce identical results\n2. **Handlebars Helper Management**: When adding new helpers, ALWAYS implement them identically in both registerHelpers() functions\n3. **Documentation Maintenance**: Keep README.md current for end-users and maintain comprehensive development documentation\n4. **Framework Enhancement**: Optimize build processes, add new features, and ensure SEO capabilities remain robust\n5. **Code Quality**: Maintain clean, well-documented code that serves AI agents effectively\n\n## Critical Protocols\n\n### Adding Handlebars Helpers (MUST FOLLOW)\n1. Design the helper function with clear purpose and parameters\n2. Implement identical function in scripts/build-static.js registerHelpers() (around line 73)\n3. Implement identical function in src/js/dev/template-engine.js registerHelpers() (around line 10)\n4. Test in both development (npm run dev) and production (npm run build) environments\n5. Update your helper inventory in the data object\n6. Update README.md with usage examples if user-facing\n7. Add helper documentation to your knowledge base\n\n### Framework Modifications\n1. Analyze impact on both development and production environments\n2. Update all affected files simultaneously\n3. Maintain backward compatibility where possible\n4. Test thoroughly in both environments\n5. Update all relevant documentation immediately\n6. Document changes in your development notes\n\n### Documentation Standards\n1. Keep README.md focused on end-user (AI agent) consumption with practical examples\n2. Maintain separate development documentation in R:/static-websites-framework/docs/\n3. Include code snippets and use cases in all documentation\n4. Update documentation immediately when making framework changes\n5. Ensure all examples are current and functional\n\n## Methodology\n- Always verify changes work in both environments before considering a task complete\n- Maintain detailed records of all framework modifications\n- Focus on practical, actionable documentation that AI agents can easily follow\n- Prioritize consistency and reliability over rapid feature addition\n- When in doubt, test extensively and document thoroughly",
+  "Knowledge": [
+    {
+      "Title": "Framework Architecture Overview",
+      "Content": "RSWF uses a dual-environment architecture: Development environment runs Vite dev server with browser-based Handlebars compilation via src/js/dev/template-engine.js. Production environment uses Vite for asset building followed by Node.js server-side Handlebars compilation via scripts/build-static.js. Both environments must produce identical HTML output despite different compilation methods. The framework supports pages (src/pages/), components (src/components/), and data files (src/data/) with automatic SEO generation."
+    },
+    {
+      "Title": "Critical File Locations and Functions",
+      "Content": "Static build registerHelpers(): scripts/build-static.js lines 71-85. Dev template registerHelpers(): src/js/dev/template-engine.js lines 8-22. User documentation: README.md. Global data: src/data/global.json (required properties: siteName, description, author, baseUrl, defaultImage). Page data: src/data/[pageName].json (required: title, description, url). Components: src/components/*.html registered as Handlebars partials. Entry point: index.html for development."
+    },
+    {
+      "Title": "Handlebars Helper Consistency Protocol",
+      "Content": "ALL Handlebars helpers must be implemented identically in both environments. Current helpers: add(a,b) for number addition, eq(a,b) for equality comparison, contains(str,substring) for string checking. Location in static build: registerHelpers() function around line 73. Location in dev template: registerHelpers() function around line 10. After adding any helper, test with 'npm run dev' AND 'npm run build' to verify consistency. Helper implementations must be character-for-character identical between files."
+    },
+    {
+      "Title": "Build Process and Commands",
+      "Content": "Development: 'npm run dev' starts Vite dev server with dynamic template rendering. Production: 'npm run build' executes 'vite build' (for assets) then 'node scripts/build-static.js' (for HTML generation). Build script generates SEO files (sitemap.xml, robots.txt), creates clean URLs (home.html → /, about.html → /about/), and merges global + page data. Asset paths resolved via Vite manifest.json or fallback discovery in dist/assets/."
+    },
+    {
+      "Title": "Component and Data System",
+      "Content": "Components are HTML files in src/components/ registered as Handlebars partials. Usage: {{> componentName param=value}}. Registration differs between environments but results must be identical. Data merging: global.json + [pageName].json → template context. Global data provides site-wide defaults, page data provides page-specific overrides. Template rendering: pages use merged data context, components receive passed parameters. SEO meta tags auto-generated from merged data."
+    },
+    {
+      "Title": "Current Framework State",
+      "Content": "Framework implements 3 Handlebars helpers consistently: add, eq, contains. Components and pages directories currently empty but infrastructure ready. Package.json includes all necessary dependencies: Vite, Tailwind CSS, Alpine.js, Handlebars, PostCSS. Build scripts fully functional for both environments. README.md provides complete end-user documentation. Development documentation needs creation in R:/static-websites-framework/docs/. Framework ready for expansion with new helpers, components, and features."
+    }
+  ],
+  "Temperature": 0.5,
+  "Flows": {},
+  "Tasks": [],
+  "TaskTemplates": [
+    {
+      "Id": "64RdeE",
+      "Name": "Add Handlebars Helper",
+      "Instructions": "Add a new Handlebars helper to both development and production environments with full consistency testing and documentation updates.",
+      "Validation": "Helper has been implemented identically in both registerHelpers() functions, tested in both environments, documented appropriately, and helper inventory updated.",
+      "IsPersisted": false,
+      "Goals": [
+        {
+          "Name": "Design Helper",
+          "Description": "Design the helper function with clear purpose, parameters, and expected behavior",
+          "Validation": "Helper function design is documented with purpose, parameters, usage examples, and expected output",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Implement in Static Build",
+          "Description": "Add the helper to registerHelpers() function in scripts/build-static.js",
+          "Validation": "Helper is implemented in build-static.js registerHelpers() function with proper syntax and functionality",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Implement in Dev Template",
+          "Description": "Add identical helper to registerHelpers() function in src/js/dev/template-engine.js",
+          "Validation": "Helper is implemented identically in template-engine.js registerHelpers() function",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Test Both Environments",
+          "Description": "Test the helper in both development (npm run dev) and production (npm run build) environments",
+          "Validation": "Helper works correctly and produces identical results in both development and production environments",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Update Documentation",
+          "Description": "Update README.md and knowledge base with helper documentation and usage examples",
+          "Validation": "Helper is documented in README.md (if user-facing) and added to knowledge base with usage examples",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Update Helper Inventory",
+          "Description": "Add the new helper to the data tracking structure",
+          "Validation": "Helper is added to the current helpers array in the data object with complete details",
+          "IsCompleted": false,
+          "IsTemporary": false
+        }
+      ],
+      "IsCompleted": false,
+      "IsError": false,
+      "Result": null,
+      "Summary": null
+    },
+    {
+      "Id": "lQESur",
+      "Name": "Update Framework Feature",
+      "Instructions": "Modify or enhance framework capabilities while maintaining dual-environment consistency and comprehensive documentation.",
+      "Validation": "Feature has been updated across all relevant files, tested in both environments, documentation updated, and changes documented.",
+      "IsPersisted": false,
+      "Goals": [
+        {
+          "Name": "Analyze Impact",
+          "Description": "Analyze the impact of the proposed change across both development and production environments",
+          "Validation": "Complete impact analysis documented including affected files and potential compatibility issues",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Plan Implementation",
+          "Description": "Create detailed implementation plan for updating the feature consistently",
+          "Validation": "Implementation plan includes specific steps for both environments and testing approach",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Update Files",
+          "Description": "Update all affected files across both environments simultaneously",
+          "Validation": "All relevant files updated with consistent implementations between environments",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Test Thoroughly",
+          "Description": "Test the updated feature in both development and production environments",
+          "Validation": "Feature works correctly in both environments and maintains backward compatibility",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Update Documentation",
+          "Description": "Update README.md and development documentation to reflect changes",
+          "Validation": "All documentation updated to reflect the current state of the framework",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Document Changes",
+          "Description": "Record the changes in development notes and change log",
+          "Validation": "Changes documented in the data tracking structure with details and rationale",
+          "IsCompleted": false,
+          "IsTemporary": false
+        }
+      ],
+      "IsCompleted": false,
+      "IsError": false,
+      "Result": null,
+      "Summary": null
+    },
+    {
+      "Id": "E3JKxT",
+      "Name": "Maintain Documentation",
+      "Instructions": "Review and update all framework documentation to ensure it remains current, comprehensive, and useful for AI agents.",
+      "Validation": "Documentation has been reviewed, updated where necessary, and verified to be current with framework state.",
+      "IsPersisted": false,
+      "Goals": [
+        {
+          "Name": "Review Current State",
+          "Description": "Review all existing documentation for accuracy and completeness",
+          "Validation": "Complete review of README.md and development documentation conducted",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Identify Gaps",
+          "Description": "Identify outdated information, missing sections, or unclear instructions",
+          "Validation": "Documentation gaps and improvement opportunities identified and prioritized",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Update User Documentation",
+          "Description": "Update README.md with current information and improved examples",
+          "Validation": "README.md updated with accurate information and practical examples for AI agents",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Update Development Documentation",
+          "Description": "Update or create development documentation in the docs directory",
+          "Validation": "Development documentation is current and comprehensive for framework maintainers",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Verify Examples",
+          "Description": "Test all code examples and snippets to ensure they work correctly",
+          "Validation": "All documentation examples verified to work with current framework state",
+          "IsCompleted": false,
+          "IsTemporary": false
+        },
+        {
+          "Name": "Update Documentation Status",
+          "Description": "Update the documentation tracking in the data object",
+          "Validation": "Documentation status updated in data tracking with timestamps and completeness indicators",
+          "IsCompleted": false,
+          "IsTemporary": false
+        }
+      ],
+      "IsCompleted": false,
+      "IsError": false,
+      "Result": null,
+      "Summary": null
+    }
+  ],
+  "Data": {
+    "helpers": {
+      "current": [
+        {
+          "name": "add",
+          "purpose": "Add two numbers together",
+          "usage": "{{add a b}}",
+          "implementation": "function(a, b) { return a + b; }",
+          "dateAdded": "existing",
+          "testedEnvironments": [
+            "development",
+            "production"
+          ],
+          "documented": true
+        },
+        {
+          "name": "eq",
+          "purpose": "Compare two values for equality",
+          "usage": "{{eq a b}}",
+          "implementation": "function(a, b) { return a === b; }",
+          "dateAdded": "existing",
+          "testedEnvironments": [
+            "development",
+            "production"
+          ],
+          "documented": true
+        },
+        {
+          "name": "contains",
+          "purpose": "Check if string contains substring",
+          "usage": "{{contains str substring}}",
+          "implementation": "function(str, substring) { return str && str.includes(substring); }",
+          "dateAdded": "existing",
+          "testedEnvironments": [
+            "development",
+            "production"
+          ],
+          "documented": true
+        }
+      ],
+      "pending": [],
+      "deprecated": []
+    },
+    "changes": {
+      "log": [
+        {
+          "date": "2025-06-16",
+          "type": "documentation",
+          "description": "Implemented comprehensive General Principles section in README.md",
+          "files": [
+            "README.md"
+          ],
+          "status": "completed"
+        },
+        {
+          "date": "2025-06-16",
+          "type": "documentation",
+          "description": "Corrected production environment description in General Principles - changed from 'Node.js server-side compilation' to accurate description of npm run build generating static HTML files",
+          "files": [
+            "README.md"
+          ],
+          "status": "completed"
+        },
+        {
+          "date": "2025-06-16",
+          "type": "documentation",
+          "description": "Added comprehensive Public Directory section to README.md documenting how files in /public are automatically copied to dist during build",
+          "files": [
+            "README.md"
+          ],
+          "status": "completed"
+        }
+      ],
+      "pending": [],
+      "tested": []
+    },
+    "documentation": {
+      "userDocsVersion": "updated-with-public-directory",
+      "devDocsStatus": "needs-creation",
+      "lastUpdated": "2025-06-16"
+    },
+    "testing": {
+      "devEnvironmentStatus": "unknown",
+      "prodEnvironmentStatus": "unknown",
+      "consistencyCheck": "unknown"
+    },
+    "framework": {
+      "version": "1.0.0",
+      "environments": [
+        "development",
+        "production"
+      ],
+      "criticalFiles": [
+        "scripts/build-static.js",
+        "src/js/dev/template-engine.js",
+        "README.md"
+      ]
+    },
+    "files": {
+      "R:/static-websites-framework/template/vite.config.js": "import { defineConfig } from 'vite';\nimport { resolve } from 'path';\n\nexport default defineConfig({\n plugins: [],\n build: {\n   rollupOptions: {\n     input: {\n       main: resolve(__dirname, 'index.html')\n     }\n   }\n }\n});",
+      "R:/static-websites-framework/template/scripts/build-static.js": "import fs from 'fs';\nimport path from 'path';\nimport { fileURLToPath } from 'url';\nimport Handlebars from 'handlebars';\n\nconst __filename = fileURLToPath(import.meta.url);\nconst __dirname = path.dirname(__filename);\nconst rootDir = path.resolve(__dirname, '..');\n\nconsole.log('🚀 Starting static site generation...');\n\n// Configuration\nconst config = {\n  srcDir: path.join(rootDir, 'src'),\n  distDir: path.join(rootDir, 'dist'),\n  pagesDir: path.join(rootDir, 'src/pages'),\n  componentsDir: path.join(rootDir, 'src/components'),\n  dataDir: path.join(rootDir, 'src/data'),\n  assetsPath: '/assets' // This will be populated by Vite\n};\n\n// Utility functions\nfunction ensureDir(dir) {\n  if (!fs.existsSync(dir)) {\n    fs.mkdirSync(dir, { recursive: true });\n  }\n}\n\nfunction readJsonFile(filePath) {\n  try {\n    const content = fs.readFileSync(filePath, 'utf-8');\n    return JSON.parse(content);\n  } catch (error) {\n    console.warn(`Warning: Could not read JSON file ${filePath}:`, error.message);\n    return {};\n  }\n}\n\nfunction readTemplateFile(filePath) {\n  try {\n    return fs.readFileSync(filePath, 'utf-8');\n  } catch (error) {\n    console.error(`Error reading template file ${filePath}:`, error.message);\n    return '';\n  }\n}\n\n// Register all Handlebars partials\nfunction registerPartials() {\n  const componentsDir = config.componentsDir;\n  \n  if (!fs.existsSync(componentsDir)) {\n    console.warn('Components directory not found');\n    return;\n  }\n\n  const componentFiles = fs.readdirSync(componentsDir).filter(file => file.endsWith('.html'));\n  \n  componentFiles.forEach(file => {\n    const componentName = path.basename(file, '.html');\n    const componentPath = path.join(componentsDir, file);\n    const componentContent = readTemplateFile(componentPath);\n    \n    Handlebars.registerPartial(componentName, componentContent);\n    console.log(`Registered partial: ${componentName}`);\n  });\n}\n\n\n// Register Handlebars helpers\nfunction registerHelpers() {\n  // Helper for adding numbers (used in process steps, etc.)\n  Handlebars.registerHelper('add', function(a, b) {\n    return a + b;\n  });\n  \n  // Helper for equality comparison\n  Handlebars.registerHelper('eq', function(a, b) {\n    return a === b;\n  });\n  \n  // Helper for checking if string contains substring\n  Handlebars.registerHelper('contains', function(str, substring) {\n    return str && str.includes(substring);\n  });\n  \n  console.log('Registered Handlebars helpers: add, eq, contains');\n}\n\n// Generate SEO meta tags for a page\nfunction generateMetaTags(pageData, globalData) {\n  const siteName = globalData.siteName || 'My Website';\n  const title = pageData.title ? `${pageData.title} | ${siteName}` : siteName;\n  const description = pageData.description || globalData.description || 'Welcome to our website';\n  const url = pageData.url || '';\n  const image = pageData.image || globalData.defaultImage || '';\n\n  return `\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>${title}</title>\n    <meta name=\"description\" content=\"${description}\">\n    \n    <!-- Open Graph / Facebook -->\n    <meta property=\"og:type\" content=\"website\">\n    <meta property=\"og:url\" content=\"${url}\">\n    <meta property=\"og:title\" content=\"${title}\">\n    <meta property=\"og:description\" content=\"${description}\">\n    ${image ? `<meta property=\"og:image\" content=\"${image}\">` : ''}\n    \n    <!-- Twitter -->\n    <meta property=\"twitter:card\" content=\"summary_large_image\">\n    <meta property=\"twitter:url\" content=\"${url}\">\n    <meta property=\"twitter:title\" content=\"${title}\">\n    <meta property=\"twitter:description\" content=\"${description}\">\n    ${image ? `<meta property=\"twitter:image\" content=\"${image}\">` : ''}\n    \n    <!-- Additional SEO -->\n    <meta name=\"robots\" content=\"index, follow\">\n    <meta name=\"author\" content=\"${globalData.author || ''}\">\n    ${pageData.keywords ? `<meta name=\"keywords\" content=\"${pageData.keywords}\">` : ''}\n    \n    <!-- Canonical URL -->\n    <link rel=\"canonical\" href=\"${url}\">\n  `.trim();\n}\n\n// Create the base HTML template\nfunction createBaseTemplate(metaTags, content, assetPaths) {\n  return `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    ${metaTags}\n    ${assetPaths.css ? `<link rel=\"stylesheet\" href=\"${assetPaths.css}\">` : ''}\n    <style>\n        /* Prevent flash of unstyled content */\n        [x-cloak] { display: none !important; }\n    </style>\n</head>\n<body>\n    <div id=\"app\">\n        ${content}\n    </div>\n    ${assetPaths.js ? `<script type=\"module\" src=\"${assetPaths.js}\"></script>` : ''}\n</body>\n</html>`;\n}\n\n// Get asset paths from Vite manifest\nfunction getAssetPaths() {\n  const manifestPath = path.join(config.distDir, '.vite', 'manifest.json');\n  \n  if (fs.existsSync(manifestPath)) {\n    try {\n      const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));\n      const entry = manifest['src/js/main.js'] || manifest['main.js'] || {};\n      \n      return {\n        js: entry.file ? `/${entry.file}` : null,\n        css: entry.css && entry.css[0] ? `/${entry.css[0]}` : null\n      };\n    } catch (error) {\n      console.warn('Could not read Vite manifest:', error.message);\n    }\n  }\n  \n  // Fallback: try to find assets in dist/assets\n  const assetsDir = path.join(config.distDir, 'assets');\n  if (fs.existsSync(assetsDir)) {\n    const files = fs.readdirSync(assetsDir);\n    const jsFile = files.find(f => f.startsWith('main-') && f.endsWith('.js'));\n    const cssFile = files.find(f => f.startsWith('main-') && f.endsWith('.css'));\n    \n    return {\n      js: jsFile ? `/assets/${jsFile}` : null,\n      css: cssFile ? `/assets/${cssFile}` : null\n    };\n  }\n  \n  return { js: null, css: null };\n}\n\n// Build individual page\nfunction buildPage(pageName, pageTemplate, pageData, globalData, assetPaths) {\n  try {\n    // Compile the template\n    const template = Handlebars.compile(pageTemplate);\n    \n    // Merge page data with global data\n    const templateData = { ...globalData, ...pageData };\n    \n    // Render the page content\n    const pageContent = template(templateData);\n    \n    // Generate meta tags\n    const metaTags = generateMetaTags(pageData, globalData);\n    \n    // Create the complete HTML\n    const fullHtml = createBaseTemplate(metaTags, pageContent, assetPaths);\n    \n    // Determine output path\n    let outputPath;\n    if (pageName === 'home' || pageName === 'index') {\n      outputPath = path.join(config.distDir, 'index.html');\n    } else {\n      // Create clean URLs: /about/ instead of /about.html\n      const pageDir = path.join(config.distDir, pageName);\n      ensureDir(pageDir);\n      outputPath = path.join(pageDir, 'index.html');\n    }\n    \n    // Write the file\n    fs.writeFileSync(outputPath, fullHtml);\n    console.log(`✓ Built page: ${pageName} -> ${outputPath}`);\n    \n    return {\n      name: pageName,\n      url: pageName === 'home' || pageName === 'index' ? '/' : `/${pageName}/`,\n      title: pageData.title,\n      description: pageData.description\n    };\n  } catch (error) {\n    console.error(`Error building page ${pageName}:`, error.message);\n    return null;\n  }\n}\n\n// Generate sitemap.xml\nfunction generateSitemap(pages, globalData) {\n  const baseUrl = globalData.baseUrl || 'https://example.com';\n  \n  const urls = pages.map(page => `\n  <url>\n    <loc>${baseUrl}${page.url}</loc>\n    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>${page.url === '/' ? '1.0' : '0.8'}</priority>\n  </url>`).join('');\n\n  const sitemap = `<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n${urls}\n</urlset>`;\n\n  const sitemapPath = path.join(config.distDir, 'sitemap.xml');\n  fs.writeFileSync(sitemapPath, sitemap);\n  console.log('✓ Generated sitemap.xml');\n}\n\n// Generate robots.txt\nfunction generateRobotsTxt(globalData) {\n  const baseUrl = globalData.baseUrl || 'https://example.com';\n  \n  const robots = `User-agent: *\nAllow: /\n\nSitemap: ${baseUrl}/sitemap.xml`;\n\n  const robotsPath = path.join(config.distDir, 'robots.txt');\n  fs.writeFileSync(robotsPath, robots);\n  console.log('✓ Generated robots.txt');\n}\n\n// Clean up unnecessary files from dist\nfunction cleanupDistFiles() {\n  // Remove the src/pages directory from dist as it's not needed in production\n  const srcPagesDir = path.join(config.distDir, 'src');\n  if (fs.existsSync(srcPagesDir)) {\n    fs.rmSync(srcPagesDir, { recursive: true, force: true });\n    console.log('✓ Cleaned up unnecessary template files from dist');\n  }\n}\n\n// Main build function\nasync function buildStaticSite() {\n  // Ensure dist directory exists\n  ensureDir(config.distDir);\n  \n  // Register Handlebars partials\n  registerPartials();\n  \n  // Register Handlebars helpers\n  registerHelpers();\n  \n  // Load global data\n  const globalDataPath = path.join(config.dataDir, 'global.json');\n  const globalData = readJsonFile(globalDataPath);\n  \n  // Get asset paths from Vite build\n  const assetPaths = getAssetPaths();\n  console.log('Asset paths:', assetPaths);\n  \n  // Find all page templates\n  const pagesDir = config.pagesDir;\n  if (!fs.existsSync(pagesDir)) {\n    console.error('Pages directory not found!');\n    return;\n  }\n  \n  const pageFiles = fs.readdirSync(pagesDir).filter(file => file.endsWith('.html'));\n  const builtPages = [];\n  \n  // Build each page\n  for (const pageFile of pageFiles) {\n    const pageName = path.basename(pageFile, '.html');\n    const pageTemplatePath = path.join(pagesDir, pageFile);\n    const pageDataPath = path.join(config.dataDir, `${pageName}.json`);\n    \n    // Load page template\n    const pageTemplate = readTemplateFile(pageTemplatePath);\n    \n    // Load page-specific data\n    const pageData = readJsonFile(pageDataPath);\n    \n    // Build the page\n    const builtPage = buildPage(pageName, pageTemplate, pageData, globalData, assetPaths);\n    if (builtPage) {\n      builtPages.push(builtPage);\n    }\n  }\n  \n  // Generate sitemap and robots.txt\n  generateSitemap(builtPages, globalData);\n  generateRobotsTxt(globalData);\n  \n  // Clean up unnecessary files\n  cleanupDistFiles();\n  \n  console.log(`✅ Static site generation complete! Built ${builtPages.length} pages.`);\n  console.log('Pages built:', builtPages.map(p => p.url).join(', '));\n}\n\n// Execute the build\nbuildStaticSite().catch(console.error);",
+      "public/test.txt": "This is a test file to verify that files in the public directory are copied to dist during build.",
+      "public/favicon.ico": "This is a placeholder favicon file for testing public directory functionality.",
+      "R:/static-websites-framework/template/dist/test.txt": "This is a test file to verify that files in the public directory are copied to dist during build.",
+      "R:/static-websites-framework/template/dist/favicon.ico": "This is a placeholder favicon file for testing public directory functionality.",
+      "R:/static-websites-framework/template/README.md": "# Recursive Static Website Framework (RSWF)\n\nThe Recursive Static Website Fraweork is a static website framework built on Vite, Tailwind CSS, and Alpine JS, leveraging Handlebars for templating. It is an opinionated framework that is optimized for use with Recursive AI Bots.\n\n## General Principles\n\nThe Recursive Static Website Framework (RSWF) is built on seven core principles that guide its architecture and design decisions:\n\n### 1. Dual-Environment Consistency\nRSWF maintains strict consistency between development and production environments. The development environment uses Vite with browser-based Handlebars compilation, while production uses \"npm run build\" to generate static HTML files in the /dist folder through a build process. Despite different compilation methods, both environments produce identical HTML output, ensuring what you see in development is exactly what you get in production.\n\n### 2. AI-First Design Philosophy\nThis framework is specifically optimized for AI agents building websites. Every aspect - from clear file structure to predictable templating patterns - is designed to be easily understood and manipulated by AI systems. Documentation is practical and example-driven, making it simple for AI agents to generate functional websites quickly.\n\n### 3. Static Site Generation Benefits\nRSWF embraces static site generation for maximum performance, security, and reliability. Static sites load faster, are more secure (no server-side vulnerabilities), cost less to host, and scale effortlessly. The framework generates clean URLs, optimized assets, and comprehensive SEO files automatically.\n\n### 4. Developer Experience Priorities\nThe framework prioritizes simplicity and clarity over complexity. Hot module replacement in development, automatic asset optimization, clean separation of concerns, and intuitive file organization ensure a smooth development experience. AI agents can focus on content and functionality rather than build configuration.\n\n### 5. SEO and Performance Principles\nEvery page automatically generates proper meta tags, Open Graph data, Twitter cards, and structured data. The build process creates sitemaps, robots.txt, and optimized assets. Performance is built-in through static generation, asset optimization, and minimal runtime JavaScript.\n\n### 6. Maintainability and Simplicity\nRSWF follows the principle of \"convention over configuration.\" Clear file naming conventions, predictable data flow, and minimal boilerplate reduce cognitive load. The framework avoids unnecessary complexity while providing powerful templating capabilities through Handlebars.\n\n### 7. Framework Extensibility\nWhile opinionated in its core structure, RSWF is designed for extensibility. Custom Handlebars helpers can be added consistently across both environments. The component system allows for reusable UI elements. The data system supports flexible content management while maintaining type safety through required properties.\n\n## File Structure:\n\n - src/\n    - components/\n        - Place all components in this directory.\n    - css/\n        - style.css - imports tailwindcss. Also, place default styles here\n        - place additional stylesheets in this directory\n    - data/\n        - global.json - default site properties\n        - [page].json - page properties for the [page].html webpage\n    - js/\n        - main.js - the default javascript module for the Alpine app.\n    - pages/\n        - The directory where you'll put all the individual pages for the website.\n\n\n## Pages\n\nEach page of the website needs its own .html file in the src/pages/ directory.\nExample home.html\n```html\n<div class=\"min-h-screen flex flex-col\">\n    {{> header title=\"Welcome to Our Website\" }}\n\n    <main class=\"flex-grow container mx-auto px-4 py-8\">\n        <h1 class=\"text-3xl font-bold mb-6\">{{ title }}</h1>\n        \n        <div class=\"mt-4\">\n            {{> button\n            text=buttonText\n            type=\"primary\"\n            onClick=\"alert('Button clicked!')\"\n            }}\n        </div>\n    </main>\n\n    {{> footer }}\n</div>\n```\n\nDuring the build process, each page's content will be embedded within the following template:\n```javascript\n  return `<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n    ${metaTags}\n    ${assetPaths.css ? `<link rel=\"stylesheet\" href=\"${assetPaths.css}\">` : ''}\n    <style>\n        /* Prevent flash of unstyled content */\n        [x-cloak] { display: none !important; }\n    </style>\n</head>\n<body>\n    <div id=\"app\">\n        ${content}\n    </div>\n    ${assetPaths.js ? `<script type=\"module\" src=\"${assetPaths.js}\"></script>` : ''}\n</body>\n</html>`;\n```\n\n\n## Data\n\nA src/data/global.json data file contains the default properties of the website. The global.json file MUST exist and MUST have all of the properties that are in the example below.\nThen, each page of the website MUST have a corresponding JSON file in the src/data/ directory. \n\n```json\nExample global.json\n{\n  \"siteName\": \"My Template Site\",\n  \"description\": \"A modern website built with Alpine.js, Tailwind CSS, and Vite\",\n  \"author\": \"Your Name\",\n  \"baseUrl\": \"https://example.com\",\n  \"defaultImage\": \"/assets/og-image.jpg\"\n}\n```\n\nExample home.json\n```json\n{\n  \"title\": \"Home\",\n  \"description\": \"Welcome to our modern website built with Alpine.js, Tailwind CSS, and Vite. Fast, responsive, and SEO-friendly.\",\n  \"keywords\": \"Alpine.js, Tailwind CSS, Vite, modern web development, responsive design\",\n  \"url\": \"/\",\n  \"buttonText\": \"Hello World!\"\n}\n```\n\nProperties of the page data json:\n - title: (required) used for page title and sitemap - defaults to global siteName\n - description: (required) used for meta description tag / open graph / twitter / sitemap\n - url: (required) canonical url / open graph\n - keywords: (optional) meta keywords tag\n - image: (optional) open graph image - defaults to global defaultImage\n    \nYou can pass in any additional data needed into the page data json. \n        \n        \n## Components\n\nComponents go in the src/components/ directory.\nAny content that is repeated often should be a component.\nNavigation, header, and footer are very often components for webpages.\n\n**Example button component:**\n```html\n<button class=\"px-4 py-2 rounded transition-colors\" :class=\"{ \n  'bg-blue-600 hover:bg-blue-700 text-white': '{{ type }}' === 'primary',\n  'bg-gray-200 hover:bg-gray-300 text-gray-800': '{{ type }}' === 'secondary'\n}\">\n    {{ text }}\n</button>\n```\n\n**Example button component usage:**\n```html\n<div class=\"mt-4\">\n    {{> button\n    text=\"Test Button\"\n    type=\"primary\"\n    onClick=\"alert('Button clicked!')\"\n    }}\n</div>\n```\n\n**Example footer component:**\n```html\n<footer class=\"bg-gray-800 text-white py-8\">\n    <div class=\"container mx-auto px-4\">\n        <p>© 2025 Your Company. All rights reserved.</p>\n    </div>\n</footer>\n```\n\n## Public Directory\n\nThe `/public` directory is used for static assets that should be served directly without processing. Files placed in this directory are automatically copied to the root of the `dist` directory during the build process.\n\n### Common Use Cases\n\n- **favicon.ico** - Website favicon\n- **robots.txt** - Search engine crawler instructions  \n- **sitemap.xml** - Custom sitemap (if not using auto-generated)\n- **images/** - Static images referenced directly in HTML\n- **fonts/** - Web fonts\n- **manifest.json** - PWA manifest file\n- **sw.js** - Service worker files\n\n### Usage\n\nSimply place any static files in the `/public` directory:\n\n```\npublic/\n├── favicon.ico\n├── robots.txt\n├── images/\n│   └── logo.png\n└── fonts/\n    └── custom-font.woff2\n```\n\nDuring build (`npm run build`), these files will be copied to the `dist` directory:\n\n```\ndist/\n├── favicon.ico\n├── robots.txt\n├── images/\n│   └── logo.png\n├── fonts/\n│   └── custom-font.woff2\n└── assets/\n    ├── main-[hash].js\n    └── main-[hash].css\n```\n\n### Important Notes\n\n- Files in `/public` are served from the root URL (`/favicon.ico`, not `/public/favicon.ico`)\n- Files are copied as-is without any processing or optimization\n- Do not place files here that need to be processed by Vite (use `/src/assets/` instead)\n- The framework auto-generates `robots.txt` and `sitemap.xml`, so only add custom versions if needed\n\n## Deployment\n\nRSWF includes a comprehensive AWS deployment system that automatically sets up and manages your entire web hosting infrastructure. With a single command, you can create a production-ready website with custom domain, SSL certificate, global CDN, and automated deployments.\n\n### Quick Start\n\n1. **Install AWS CLI**: Download from [https://aws.amazon.com/cli/](https://aws.amazon.com/cli/)\n2. **Configure AWS credentials**: Run `aws configure`\n3. **Set your domain**: Update `rswf.config.js` with your domain name\n4. **Create infrastructure**: Run `npm run deploy-setup` (one-time)\n5. **Deploy your site**: Run `npm run build && npm run deploy`\n\n\n### Detailed Documentation\n\nFor comprehensive setup instructions, troubleshooting, and advanced configuration, see [DEPLOY.md](./DEPLOY.md). HUMANS ONLY! AI AGENTS SHOULD NOT READ THE DEPLOYMENT DOCUMENTATION. The quick start above is sufficient for AI agents to deploy their websites."
+    }
+  },
+  "Usage": {
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cache_creation_input_tokens": 0,
+    "cache_read_input_tokens": 0,
+    "TotalTokens": 0,
+    "TotalCost": 0.0
+  },
+  "ContextWindowUsed": 32757,
+  "Messages": [],
+  "ModelName": "claude-sonnet-4-0",
+  "ToolContainerNames": [
+    "DefaultTools",
+    "FileTools"
+  ],
+  "AutoCleanupCooldown": 0,
+  "CompressionStrategy": "When compressing Sage's context, prioritize preserving: 1) Current helper inventory with implementations and testing status, 2) Recent framework changes and their impact on both environments, 3) Documentation update history and current status, 4) Active maintenance tasks and their progress, 5) Any pending consistency issues between environments. Consolidate older completed tasks but preserve lessons learned. Maintain the complete knowledge base as it's essential for framework maintenance. Compress verbose task discussions but keep key decisions and implementation details.",
+  "ToolMetadata": {
+    "workingDirectory": "R:/static-websites-framework/template"
+  },
+  "IsPaused": false
+}

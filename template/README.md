@@ -163,6 +163,56 @@ Navigation, header, and footer are very often components for webpages.
 </footer>
 ```
 
+## Public Directory
+
+The `/public` directory is used for static assets that should be served directly without processing. Files placed in this directory are automatically copied to the root of the `dist` directory during the build process.
+
+### Common Use Cases
+
+- **favicon.ico** - Website favicon
+- **robots.txt** - Search engine crawler instructions  
+- **sitemap.xml** - Custom sitemap (if not using auto-generated)
+- **images/** - Static images referenced directly in HTML
+- **fonts/** - Web fonts
+- **manifest.json** - PWA manifest file
+- **sw.js** - Service worker files
+
+### Usage
+
+Simply place any static files in the `/public` directory:
+
+```
+public/
+├── favicon.ico
+├── robots.txt
+├── images/
+│   └── logo.png
+└── fonts/
+    └── custom-font.woff2
+```
+
+During build (`npm run build`), these files will be copied to the `dist` directory:
+
+```
+dist/
+├── favicon.ico
+├── robots.txt
+├── images/
+│   └── logo.png
+├── fonts/
+│   └── custom-font.woff2
+└── assets/
+    ├── main-[hash].js
+    └── main-[hash].css
+```
+
+### Important Notes
+
+- Files in `/public` are served from the root URL (`/favicon.ico`, not `/public/favicon.ico`)
+- Files are copied as-is without any processing or optimization
+- Do not place files here that need to be processed by Vite (use `/src/assets/` instead)
+- The framework auto-generates `robots.txt` and `sitemap.xml`, so only add custom versions if needed
+
 ## Deployment
 
 RSWF includes a comprehensive AWS deployment system that automatically sets up and manages your entire web hosting infrastructure. With a single command, you can create a production-ready website with custom domain, SSL certificate, global CDN, and automated deployments.
@@ -175,154 +225,7 @@ RSWF includes a comprehensive AWS deployment system that automatically sets up a
 4. **Create infrastructure**: Run `npm run deploy-setup` (one-time)
 5. **Deploy your site**: Run `npm run build && npm run deploy`
 
-Your site will be live at `https://yourdomain.com` with SSL and global CDN!
-
-### Prerequisites
-
-1. **AWS CLI v2**: Install from [https://aws.amazon.com/cli/](https://aws.amazon.com/cli/)
-2. **AWS Account**: You need an AWS account with appropriate permissions
-3. **Domain Name**: You must own a domain name for your website
-4. **Domain Registrar Access**: To update nameservers (one-time setup)
-
-### Configuration
-
-Create a `rswf.config.js` file in your project root:
-
-```javascript
-export default {
-  deploy: {
-    // Your domain name (required for infrastructure setup)
-    domain: 'example.com',
-    
-    // S3 bucket name (defaults to domain name)
-    bucketName: 'example.com',
-    
-    // AWS region for S3 bucket
-    region: 'us-east-1',
-    
-    // AWS credentials (optional if using CLI/environment)
-    aws: {
-      // Use AWS CLI profile (recommended)
-      profile: 'default',
-      
-      // Or direct credentials (not recommended for production)
-      // accessKeyId: 'your-access-key-id',
-      // secretAccessKey: 'your-secret-access-key'
-    },
-    
-    // CloudFront configuration (auto-populated by setup script)
-    cloudfront: {
-      // distributionId: 'E1234567890', // Auto-populated
-      autoInvalidate: true,              // Auto-invalidate cache on deploy
-      // invalidatePaths: ['/custom/*']  // Custom invalidation paths
-    },
-    
-    // Deployment options
-    options: {
-      // Sync behavior - delete files not in local build
-      deleteRemoved: true,
-      
-      // Cache control headers for optimal performance
-      cacheControl: {
-        'text/html': 'no-cache, no-store, must-revalidate',
-        'text/css': 'public, max-age=31536000, immutable',
-        'application/javascript': 'public, max-age=31536000, immutable',
-        'image/*': 'public, max-age=2592000',
-        'default': 'public, max-age=86400'
-      },
-      
-      // Files to exclude from upload
-      exclude: ['.DS_Store', 'Thumbs.db', '*.log']
-    }
-  }
-};
-```
-
-### Infrastructure Setup (One-Time)
-
-The setup script creates your complete AWS infrastructure:
-
-```bash
-npm run deploy-setup
-```
-
-**What this creates:**
-- **Route53 Hosted Zone**: DNS management for your domain
-- **S3 Bucket**: Static website hosting with versioning
-- **CloudFront Distribution**: Global CDN with custom domain
-- **SSL Certificate**: Free HTTPS certificate via AWS Certificate Manager
-- **DNS Records**: Automatic domain pointing to CloudFront
-
-**For subdomains** (e.g., `blog.example.com`): The script intelligently uses your existing root domain's hosted zone.
-
-**After setup**: Update your domain registrar's nameservers with the provided AWS nameservers (one-time, 24-48 hour propagation).
-
-### Ongoing Deployment
-
-Deploy updates to your live site:
-
-```bash
-# Build and deploy
-npm run build && npm run deploy
-
-# Or separately
-npm run build
-npm run deploy
-```
-
-**What deployment does:**
-- Uploads changed files to S3
-- Sets optimal cache headers
-- Automatically invalidates CloudFront cache
-- Provides live site URL
-
-### AWS Authentication
-
-Multiple authentication methods supported:
-
-1. **AWS CLI Profile** (Recommended):
-   ```bash
-   aws configure --profile myprofile
-   ```
-
-2. **Environment Variables**:
-   ```bash
-   export AWS_ACCESS_KEY_ID=your-access-key
-   export AWS_SECRET_ACCESS_KEY=your-secret-key
-   export AWS_DEFAULT_REGION=us-east-1
-   ```
-
-3. **IAM Roles**: Automatic when running on AWS infrastructure
-
-### Advanced Features
-
-- **Smart Cache Invalidation**: Only invalidates HTML files and unversioned assets
-- **Asset Versioning**: Leverages Vite's automatic asset versioning for optimal caching
-- **Multi-Environment Support**: Easy staging/production configurations
-- **Cost Optimization**: Intelligent caching reduces bandwidth costs
-- **Global Performance**: CloudFront edge locations worldwide
-
-### Estimated Costs
-
-For typical small websites:
-- **Route53**: $0.50/month (hosted zone)
-- **S3**: $0.05/month (storage)
-- **CloudFront**: $1.00/month (CDN)
-- **SSL Certificate**: Free
-- **Total**: ~$1.55/month
 
 ### Detailed Documentation
 
-For comprehensive setup instructions, troubleshooting, and advanced configuration, see [DEPLOY.md](./DEPLOY.md).
-
-### Deployment Features
-
-- **One-Command Infrastructure**: Complete AWS setup with `npm run deploy-setup`
-- **Automatic SSL**: Free HTTPS certificates with auto-renewal
-- **Global CDN**: CloudFront distribution for worldwide performance
-- **Smart Caching**: Optimized cache behaviors for different file types
-- **Cache Invalidation**: Automatic CloudFront cache busting on deploy
-- **Clean URLs**: SEO-friendly URL structure maintained
-- **Domain Management**: Handles both root domains and subdomains
-- **Error Handling**: Comprehensive validation and clear error messages
-- **Cost Efficient**: Optimized for minimal AWS costs
+For comprehensive setup instructions, troubleshooting, and advanced configuration, see [DEPLOY.md](./DEPLOY.md). HUMANS ONLY! AI AGENTS SHOULD NOT READ THE DEPLOYMENT DOCUMENTATION. The quick start above is sufficient for AI agents to deploy their websites.
