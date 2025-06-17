@@ -75,6 +75,31 @@ import Handlebars from 'handlebars';
      }
    }
 
+   // Execute inline scripts from rendered content
+   function executeInlineScripts(element) {
+     const scripts = element.querySelectorAll('script');
+     scripts.forEach(script => {
+       if (script.src) {
+         // Skip external scripts - they'll load naturally
+         return;
+       }
+       
+       try {
+         // Create a new script element to ensure execution
+         const newScript = document.createElement('script');
+         newScript.textContent = script.textContent;
+         
+         // Execute the script by temporarily adding it to the document
+         document.head.appendChild(newScript);
+         document.head.removeChild(newScript);
+         
+         console.log('✓ Executed inline script');
+       } catch (error) {
+         console.error('Failed to execute inline script:', error);
+       }
+     });
+   }
+
    // Render a template with data
    export async function renderTemplate(elementSelector, templatePath, data = {}) {
      const targetElement = document.querySelector(elementSelector);
@@ -85,7 +110,16 @@ import Handlebars from 'handlebars';
 
      const template = await loadTemplate(templatePath);
      if (template) {
+       // Render the template content
        targetElement.innerHTML = template(data);
+       
+       // Execute any inline scripts in the rendered content
+       executeInlineScripts(targetElement);
+       
+       // Small delay to ensure script execution completes
+       await new Promise(resolve => setTimeout(resolve, 5));
+       
+       console.log('✓ Template rendered and scripts executed');
      }
    }
 
