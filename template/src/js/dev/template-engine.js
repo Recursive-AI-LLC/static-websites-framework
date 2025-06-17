@@ -125,37 +125,65 @@ import Handlebars from 'handlebars';
    export async function initTemplates() {
      console.log('Initializing development template engine...');
      
-     // Register Handlebars helpers first
-     registerHelpers();
-     
-     // Register all partials
-     await registerAllPartials();
+     try {
+       // Register Handlebars helpers first
+       registerHelpers();
+       
+       // Register all partials
+       await registerAllPartials();
 
-     // Load global data
-     const globalData = await loadJsonData('/src/data/global.json');
+       // Load global data
+       const globalData = await loadJsonData('/src/data/global.json');
 
-     // Get the current page path
-     const pagePath = window.location.pathname;
+       // Get the current page path
+       const pagePath = window.location.pathname;
 
-     // Determine which template and data to load based on the path
-     let templatePath;
-     let pageName;
+        // Determine which template and data to load based on the path
+        let templatePath;
+        let pageName;
 
-     if (pagePath === '/' || pagePath === '/index.html') {
-         templatePath = '/src/pages/home.html';
-         pageName = 'home';
-     } else {
-         // Extract page name from path
-         pageName = pagePath.split('/').pop().replace('.html', '');
-         templatePath = `/src/pages/${pageName}.html`;
+        if (pagePath === '/' || pagePath === '/index.html') {
+            // Try index.html first, then fall back to home.html
+            templatePath = '/src/pages/index.html';
+            pageName = 'index';
+            
+            // Check if index.html exists, if not try home.html
+            try {
+                const response = await fetch(templatePath);
+                if (!response.ok) {
+                    console.log('index.html not found, falling back to home.html');
+                    templatePath = '/src/pages/home.html';
+                    pageName = 'home';
+                }
+            } catch (error) {
+                console.log('index.html not accessible, falling back to home.html');
+                templatePath = '/src/pages/home.html';
+                pageName = 'home';
+            }
+        } else {
+            // Extract page name from path
+            pageName = pagePath.split('/').pop().replace('.html', '');
+            templatePath = `/src/pages/${pageName}.html`;
+        }
+       
+       console.log(`Loading template: ${templatePath} with data: ${pageName}.json`);
+       
+       // Load page-specific data
+       const pageData = await loadJsonData(`/src/data/${pageName}.json`);
+
+       // Merge global and page data (same as production build)
+       const templateData = { ...globalData, ...pageData };
+
+       // Render the page template and wait for completion
+       await renderTemplate('#app', templatePath, templateData);
+       
+       console.log('✓ Template rendering complete');
+       
+       // Ensure DOM has been updated
+       await new Promise(resolve => requestAnimationFrame(resolve));
+       
+     } catch (error) {
+       console.error('Template initialization failed:', error);
+       throw error; // Re-throw so main.js can handle the error
      }
-
-     // Load page-specific data
-     const pageData = await loadJsonData(`/src/data/${pageName}.json`);
-
-     // Merge global and page data (same as production build)
-     const templateData = { ...globalData, ...pageData };
-
-     // Render the page template
-     await renderTemplate('#app', templatePath, templateData);
    }
