@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "vite build && node scripts/build-static.js",
     "preview": "vite preview",
-    "build:static": "node scripts/build-static.js"
+    "build:static": "node scripts/build-static.js",
+    "deploy": "node scripts/deploy.js",
+    "deploy-setup": "node scripts/deploy-setup.js"
   },
   "keywords": [],
   "author": "",

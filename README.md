@@ -43,6 +43,27 @@ Example home.html
 </div>
 ```
 
+During the build process, each page's content will be embedded within the following template:
+```javascript
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+    ${metaTags}
+    ${assetPaths.css ? `<link rel="stylesheet" href="${assetPaths.css}">` : ''}
+    <style>
+        /* Prevent flash of unstyled content */
+        [x-cloak] { display: none !important; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        ${content}
+    </div>
+    ${assetPaths.js ? `<script type="module" src="${assetPaths.js}"></script>` : ''}
+</body>
+</html>`;
+```
+
 
 ## Data
 
