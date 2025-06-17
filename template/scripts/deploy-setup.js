@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { fileURLToPath } from 'url';
 import { execSync } from 'child_process';
 
@@ -62,8 +63,16 @@ function isSubdomain(domain) {
   return parts.length > 2;
 }
 
+// Helper function to build AWS CLI commands with optional profile
+function buildAwsCommand(baseCommand, profile = null) {
+  if (profile) {
+    return `aws --profile ${profile} ${baseCommand}`;
+  }
+  return `aws ${baseCommand}`;
+}
+
 // Check AWS CLI and credentials
-function checkAwsPrerequisites() {
+function checkAwsPrerequisites(profile = null) {
   try {
     execSync('aws --version', { stdio: 'pipe' });
     console.log('✓ AWS CLI is installed');
@@ -74,19 +83,29 @@ function checkAwsPrerequisites() {
   }
 
   try {
-    execSync('aws sts get-caller-identity', { stdio: 'pipe' });
-    console.log('✓ AWS credentials are valid');
+    const command = buildAwsCommand('sts get-caller-identity', profile);
+    execSync(command, { stdio: 'pipe' });
+    if (profile) {
+      console.log(`✓ AWS credentials are valid for profile: ${profile}`);
+    } else {
+      console.log('✓ AWS credentials are valid');
+    }
   } catch (error) {
-    console.error('❌ Error: AWS credentials not configured');
-    console.log('Please run: aws configure');
+    if (profile) {
+      console.error(`❌ Error: AWS credentials not configured for profile: ${profile}`);
+      console.log(`Please run: aws configure --profile ${profile}`);
+    } else {
+      console.error('❌ Error: AWS credentials not configured');
+      console.log('Please run: aws configure');
+    }
     process.exit(1);
   }
 }
 
 // Find existing hosted zone
-function findHostedZone(domain) {
+function findHostedZone(domain, profile = null) {
   try {
-    const command = `aws route53 list-hosted-zones --query "HostedZones[?Name=='${domain}.'].{Id:Id,Name:Name}" --output json`;
+    const command = buildAwsCommand(`route53 list-hosted-zones --query "HostedZones[?Name=='${domain}.'].{Id:Id,Name:Name}" --output json`, profile);
     const result = execSync(command, { encoding: 'utf8' });
     const zones = JSON.parse(result);
     
@@ -104,11 +123,11 @@ function findHostedZone(domain) {
 }
 
 // Create hosted zone
-function createHostedZone(domain) {
+function createHostedZone(domain, profile = null) {
   try {
     console.log(`📝 Creating hosted zone for ${domain}...`);
     
-    const command = `aws route53 create-hosted-zone --name ${domain} --caller-reference ${Date.now()} --output json`;
+    const command = buildAwsCommand(`route53 create-hosted-zone --name ${domain} --caller-reference ${Date.now()} --output json`, profile);
     const result = execSync(command, { encoding: 'utf8' });
     const response = JSON.parse(result);
     
@@ -116,7 +135,7 @@ function createHostedZone(domain) {
     console.log(`✓ Created hosted zone: ${zoneId}`);
     
     // Display nameservers
-    const nsCommand = `aws route53 get-hosted-zone --id ${zoneId} --query "DelegationSet.NameServers" --output json`;
+    const nsCommand = buildAwsCommand(`route53 get-hosted-zone --id ${zoneId} --query "DelegationSet.NameServers" --output json`, profile);
     const nsResult = execSync(nsCommand, { encoding: 'utf8' });
     const nameServers = JSON.parse(nsResult);
     
@@ -131,24 +150,25 @@ function createHostedZone(domain) {
 }
 
 // Get or create hosted zone
-function setupHostedZone(domain) {
+function setupHostedZone(domain, profile = null) {
   const rootDomain = getRootDomain(domain);
   
   // First, check if root domain has a hosted zone
-  let hostedZoneId = findHostedZone(rootDomain);
+  let hostedZoneId = findHostedZone(rootDomain, profile);
   
   if (!hostedZoneId) {
     // No hosted zone for root domain, create one
-    hostedZoneId = createHostedZone(rootDomain);
+    hostedZoneId = createHostedZone(rootDomain, profile);
   }
   
   return { hostedZoneId, zoneDomain: rootDomain };
 }
 
 // Check if S3 bucket exists
-function checkS3Bucket(bucketName) {
+function checkS3Bucket(bucketName, profile = null) {
   try {
-    execSync(`aws s3api head-bucket --bucket ${bucketName}`, { stdio: 'pipe' });
+    const command = buildAwsCommand(`s3api head-bucket --bucket ${bucketName}`, profile);
+    execSync(command, { stdio: 'pipe' });
     console.log(`✓ S3 bucket ${bucketName} already exists`);
     return true;
   } catch (error) {
@@ -157,24 +177,28 @@ function checkS3Bucket(bucketName) {
 }
 
 // Create S3 bucket
-function createS3Bucket(bucketName, region) {
+function createS3Bucket(bucketName, region, profile = null) {
   try {
     console.log(`📦 Creating S3 bucket: ${bucketName}...`);
     
     // Create bucket
     if (region === 'us-east-1') {
-      execSync(`aws s3api create-bucket --bucket ${bucketName} --region ${region}`, { stdio: 'pipe' });
+      const command = buildAwsCommand(`s3api create-bucket --bucket ${bucketName} --region ${region}`, profile);
+      execSync(command, { stdio: 'pipe' });
     } else {
-      execSync(`aws s3api create-bucket --bucket ${bucketName} --region ${region} --create-bucket-configuration LocationConstraint=${region}`, { stdio: 'pipe' });
+      const command = buildAwsCommand(`s3api create-bucket --bucket ${bucketName} --region ${region} --create-bucket-configuration LocationConstraint=${region}`, profile);
+      execSync(command, { stdio: 'pipe' });
     }
     
     // Disable public access block
     console.log('🔓 Disabling public access block...');
-    execSync(`aws s3api delete-public-access-block --bucket ${bucketName}`, { stdio: 'pipe' });
+    const deleteBlockCommand = buildAwsCommand(`s3api delete-public-access-block --bucket ${bucketName}`, profile);
+    execSync(deleteBlockCommand, { stdio: 'pipe' });
     
     // Enable versioning
     console.log('📚 Enabling versioning...');
-    execSync(`aws s3api put-bucket-versioning --bucket ${bucketName} --versioning-configuration Status=Enabled`, { stdio: 'pipe' });
+    const versioningCommand = buildAwsCommand(`s3api put-bucket-versioning --bucket ${bucketName} --versioning-configuration Status=Enabled`, profile);
+    execSync(versioningCommand, { stdio: 'pipe' });
     
     // Configure website hosting
     console.log('🌐 Configuring static website hosting...');
@@ -183,8 +207,10 @@ function createS3Bucket(bucketName, region) {
       ErrorDocument: { Key: 'index.html' }
     };
     
-    fs.writeFileSync('/tmp/website-config.json', JSON.stringify(websiteConfig));
-    execSync(`aws s3api put-bucket-website --bucket ${bucketName} --website-configuration file:///tmp/website-config.json`, { stdio: 'pipe' });
+    const websiteConfigPath = path.join(os.tmpdir(), 'website-config.json');
+    fs.writeFileSync(websiteConfigPath, JSON.stringify(websiteConfig));
+    const websiteCommand = buildAwsCommand(`s3api put-bucket-website --bucket ${bucketName} --website-configuration file://${websiteConfigPath}`, profile);
+    execSync(websiteCommand, { stdio: 'pipe' });
     
     // Set bucket policy for public read
     console.log('📋 Setting bucket policy for public read...');
@@ -199,8 +225,10 @@ function createS3Bucket(bucketName, region) {
       }]
     };
     
-    fs.writeFileSync('/tmp/bucket-policy.json', JSON.stringify(bucketPolicy));
-    execSync(`aws s3api put-bucket-policy --bucket ${bucketName} --policy file:///tmp/bucket-policy.json`, { stdio: 'pipe' });
+    const bucketPolicyPath = path.join(os.tmpdir(), 'bucket-policy.json');
+    fs.writeFileSync(bucketPolicyPath, JSON.stringify(bucketPolicy));
+    const policyCommand = buildAwsCommand(`s3api put-bucket-policy --bucket ${bucketName} --policy file://${bucketPolicyPath}`, profile);
+    execSync(policyCommand, { stdio: 'pipe' });
     
     console.log(`✓ S3 bucket ${bucketName} configured successfully`);
     
@@ -210,16 +238,58 @@ function createS3Bucket(bucketName, region) {
   }
 }
 
+// Check for existing SSL certificates that cover the required domains
+function findExistingSSLCertificate(domains, profile = null) {
+  try {
+    console.log('🔍 Checking for existing SSL certificates...');
+    
+    const command = buildAwsCommand(`acm list-certificates --region us-east-1 --output json`, profile);
+    const result = execSync(command, { encoding: 'utf8' });
+    const response = JSON.parse(result);
+    
+    for (const cert of response.CertificateSummaryList) {
+      if (cert.Status === 'ISSUED') {
+        // Check if this certificate covers all required domains
+        const describeCommand = buildAwsCommand(`acm describe-certificate --certificate-arn ${cert.CertificateArn} --region us-east-1 --output json`, profile);
+        const describeResult = execSync(describeCommand, { encoding: 'utf8' });
+        const certDetails = JSON.parse(describeResult);
+        
+        const certDomains = [certDetails.Certificate.DomainName, ...(certDetails.Certificate.SubjectAlternativeNames || [])];
+        const coversAllDomains = domains.every(domain => certDomains.includes(domain));
+        
+        if (coversAllDomains) {
+          console.log(`✓ Found existing certificate that covers all required domains: ${cert.CertificateArn}`);
+          console.log(`📋 Certificate covers: ${certDomains.join(', ')}`);
+          return cert.CertificateArn;
+        }
+      }
+    }
+    
+    console.log('ℹ️ No existing certificate found that covers all required domains');
+    return null;
+  } catch (error) {
+    console.warn(`⚠️ Could not check for existing certificates: ${error.message}`);
+    return null;
+  }
+}
+
 // Request SSL certificate
-function requestSSLCertificate(domain) {
+async function requestSSLCertificate(domain, profile = null) {
   try {
     console.log(`🔒 Requesting SSL certificate for ${domain}...`);
     
     // Include www variant for root domains
     const domains = isSubdomain(domain) ? [domain] : [domain, `www.${domain}`];
-    const domainArgs = domains.map(d => `--domain-name ${d}`).join(' ');
     
-    const command = `aws acm request-certificate ${domainArgs} --validation-method DNS --region us-east-1 --output json`;
+    // Build the correct AWS CLI command format
+    let certificateCommand = `acm request-certificate --domain-name ${domains[0]}`;
+    if (domains.length > 1) {
+      const sanDomains = domains.slice(1).join(' ');
+      certificateCommand += ` --subject-alternative-names ${sanDomains}`;
+    }
+    certificateCommand += ` --validation-method DNS --region us-east-1 --output json`;
+    
+    const command = buildAwsCommand(certificateCommand, profile);
     const result = execSync(command, { encoding: 'utf8' });
     const response = JSON.parse(result);
     
@@ -233,17 +303,42 @@ function requestSSLCertificate(domain) {
     
     while (!validationRecords && attempts < 30) {
       try {
-        const describeCommand = `aws acm describe-certificate --certificate-arn ${certificateArn} --region us-east-1 --output json`;
+        const describeCommand = buildAwsCommand(`acm describe-certificate --certificate-arn ${certificateArn} --region us-east-1 --output json`, profile);
         const describeResult = execSync(describeCommand, { encoding: 'utf8' });
         const certDetails = JSON.parse(describeResult);
         
-        if (certDetails.Certificate.DomainValidationOptions && 
-            certDetails.Certificate.DomainValidationOptions[0].ResourceRecord) {
-          validationRecords = certDetails.Certificate.DomainValidationOptions;
-          break;
+        console.log(`⏳ Attempt ${attempts + 1}/30 - Checking certificate validation records...`);
+        
+        if (certDetails.Certificate.DomainValidationOptions) {
+          const domainOptions = certDetails.Certificate.DomainValidationOptions;
+          console.log(`📋 Found ${domainOptions.length} domain validation option(s)`);
+          
+          // Check if ALL domain validation options have ResourceRecord populated
+          const allHaveResourceRecords = domainOptions.every(option => {
+            const hasResourceRecord = option.ResourceRecord && 
+                                    option.ResourceRecord.Name && 
+                                    option.ResourceRecord.Type && 
+                                    option.ResourceRecord.Value;
+            
+            if (!hasResourceRecord) {
+              console.log(`⏳ Domain ${option.DomainName} validation record not ready yet`);
+            } else {
+              console.log(`✓ Domain ${option.DomainName} validation record ready`);
+            }
+            
+            return hasResourceRecord;
+          });
+          
+          if (allHaveResourceRecords) {
+            validationRecords = domainOptions;
+            console.log(`✓ All ${domainOptions.length} validation record(s) are ready`);
+            break;
+          }
+        } else {
+          console.log('⏳ No domain validation options found yet');
         }
       } catch (error) {
-        // Continue waiting
+        console.log(`⚠️ Error checking certificate details: ${error.message}`);
       }
       
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -264,16 +359,35 @@ function requestSSLCertificate(domain) {
 }
 
 // Create DNS validation records
-function createValidationRecords(hostedZoneId, validationRecords) {
+function createValidationRecords(hostedZoneId, validationRecords, profile = null) {
   try {
     console.log('📝 Creating DNS validation records...');
+    
+    // Validate that validationRecords is iterable and has content
+    if (!validationRecords) {
+      console.error('❌ Error: validationRecords is null or undefined');
+      process.exit(1);
+    }
+    
+    if (!Array.isArray(validationRecords)) {
+      console.error('❌ Error: validationRecords is not an array:', typeof validationRecords);
+      console.log('validationRecords value:', validationRecords);
+      process.exit(1);
+    }
+    
+    if (validationRecords.length === 0) {
+      console.error('❌ Error: validationRecords array is empty');
+      process.exit(1);
+    }
+    
+    console.log(`📋 Processing ${validationRecords.length} validation record(s)...`);
     
     for (const record of validationRecords) {
       const resourceRecord = record.ResourceRecord;
       
       const changeSet = {
         Changes: [{
-          Action: 'CREATE',
+          Action: 'UPSERT',
           ResourceRecordSet: {
             Name: resourceRecord.Name,
             Type: resourceRecord.Type,
@@ -283,8 +397,33 @@ function createValidationRecords(hostedZoneId, validationRecords) {
         }]
       };
       
-      fs.writeFileSync('/tmp/validation-record.json', JSON.stringify(changeSet));
-      execSync(`aws route53 change-resource-record-sets --hosted-zone-id ${hostedZoneId} --change-batch file:///tmp/validation-record.json`, { stdio: 'pipe' });
+      const validationRecordPath = path.join(os.tmpdir(), 'validation-record.json');
+      fs.writeFileSync(validationRecordPath, JSON.stringify(changeSet));
+      const command = buildAwsCommand(`route53 change-resource-record-sets --hosted-zone-id ${hostedZoneId} --change-batch file://${validationRecordPath}`, profile);
+      
+      try {
+        execSync(command, { stdio: 'pipe' });
+        console.log(`✓ Created/updated validation record for ${resourceRecord.Name}`);
+      } catch (error) {
+        // If UPSERT fails, log the error but continue with other records
+        console.warn(`⚠️ Warning: Could not create/update validation record for ${resourceRecord.Name}: ${error.message}`);
+        
+        // Check if the record already exists and has the correct value
+        try {
+          const listCommand = buildAwsCommand(`route53 list-resource-record-sets --hosted-zone-id ${hostedZoneId} --query "ResourceRecordSets[?Name=='${resourceRecord.Name}' && Type=='${resourceRecord.Type}'].ResourceRecords[0].Value" --output text`, profile);
+          const existingValue = execSync(listCommand, { encoding: 'utf8' }).trim();
+          
+          if (existingValue === resourceRecord.Value) {
+            console.log(`✓ Validation record for ${resourceRecord.Name} already exists with correct value`);
+          } else {
+            console.error(`❌ Validation record for ${resourceRecord.Name} exists but has wrong value. Expected: ${resourceRecord.Value}, Found: ${existingValue}`);
+            throw new Error(`Validation record mismatch for ${resourceRecord.Name}`);
+          }
+        } catch (checkError) {
+          console.error(`❌ Could not verify existing validation record: ${checkError.message}`);
+          throw error; // Re-throw original error
+        }
+      }
     }
     
     console.log('✓ DNS validation records created');
@@ -296,7 +435,7 @@ function createValidationRecords(hostedZoneId, validationRecords) {
 }
 
 // Wait for certificate validation
-async function waitForCertificateValidation(certificateArn) {
+async function waitForCertificateValidation(certificateArn, profile = null) {
   console.log('⏳ Waiting for SSL certificate validation (this may take several minutes)...');
   
   let attempts = 0;
@@ -304,7 +443,7 @@ async function waitForCertificateValidation(certificateArn) {
   
   while (attempts < maxAttempts) {
     try {
-      const command = `aws acm describe-certificate --certificate-arn ${certificateArn} --region us-east-1 --query "Certificate.Status" --output text`;
+      const command = buildAwsCommand(`acm describe-certificate --certificate-arn ${certificateArn} --region us-east-1 --query "Certificate.Status" --output text`, profile);
       const status = execSync(command, { encoding: 'utf8' }).trim();
       
       if (status === 'ISSUED') {
@@ -334,11 +473,11 @@ async function waitForCertificateValidation(certificateArn) {
 }
 
 // Create CloudFront distribution
-function createCloudFrontDistribution(bucketName, domain, certificateArn) {
+function createCloudFrontDistribution(bucketName, domain, certificateArn, region, profile = null) {
   try {
     console.log('☁️ Creating CloudFront distribution...');
     
-    const originDomain = `${bucketName}.s3-website-us-east-1.amazonaws.com`;
+    const originDomain = `${bucketName}.s3-website-${region}.amazonaws.com`;
     const aliases = isSubdomain(domain) ? [domain] : [domain, `www.${domain}`];
     
     const distributionConfig = {
@@ -422,9 +561,10 @@ function createCloudFrontDistribution(bucketName, domain, certificateArn) {
       PriceClass: 'PriceClass_100'
     };
     
-    fs.writeFileSync('/tmp/distribution-config.json', JSON.stringify({ DistributionConfig: distributionConfig }));
+    const distributionConfigPath = path.join(os.tmpdir(), 'distribution-config.json');
+    fs.writeFileSync(distributionConfigPath, JSON.stringify(distributionConfig));
     
-    const command = `aws cloudfront create-distribution --distribution-config file:///tmp/distribution-config.json --output json`;
+    const command = buildAwsCommand(`cloudfront create-distribution --distribution-config file://${distributionConfigPath} --output json`, profile);
     const result = execSync(command, { encoding: 'utf8' });
     const response = JSON.parse(result);
     
@@ -443,7 +583,7 @@ function createCloudFrontDistribution(bucketName, domain, certificateArn) {
 }
 
 // Create Route53 DNS records
-function createDNSRecords(hostedZoneId, domain, distributionDomain) {
+function createDNSRecords(hostedZoneId, domain, distributionDomain, profile = null) {
   try {
     console.log('📝 Creating DNS records...');
     
@@ -465,10 +605,12 @@ function createDNSRecords(hostedZoneId, domain, distributionDomain) {
         }]
       };
       
-      fs.writeFileSync('/tmp/dns-record.json', JSON.stringify(changeSet));
+      const dnsRecordPath = path.join(os.tmpdir(), 'dns-record.json');
+      fs.writeFileSync(dnsRecordPath, JSON.stringify(changeSet));
       
       try {
-        execSync(`aws route53 change-resource-record-sets --hosted-zone-id ${hostedZoneId} --change-batch file:///tmp/dns-record.json`, { stdio: 'pipe' });
+        const command = buildAwsCommand(`route53 change-resource-record-sets --hosted-zone-id ${hostedZoneId} --change-batch file://${dnsRecordPath}`, profile);
+        execSync(command, { stdio: 'pipe' });
         console.log(`✓ Created DNS record for ${recordName}`);
       } catch (error) {
         if (error.message.includes('already exists')) {
@@ -525,17 +667,18 @@ function updateConfigFile(domain, distributionId) {
 // Clean up temporary files
 function cleanup() {
   const tempFiles = [
-    '/tmp/website-config.json',
-    '/tmp/bucket-policy.json',
-    '/tmp/validation-record.json',
-    '/tmp/distribution-config.json',
-    '/tmp/dns-record.json'
+    'website-config.json',
+    'bucket-policy.json',
+    'validation-record.json',
+    'distribution-config.json',
+    'dns-record.json'
   ];
   
-  tempFiles.forEach(file => {
+  tempFiles.forEach(fileName => {
     try {
-      if (fs.existsSync(file)) {
-        fs.unlinkSync(file);
+      const filePath = path.join(os.tmpdir(), fileName);
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
       }
     } catch (error) {
       // Ignore cleanup errors
@@ -551,44 +694,57 @@ async function setupInfrastructure() {
     const domain = validateConfig(config);
     const region = config.deploy.region || 'us-east-1';
     const bucketName = config.deploy.bucketName || domain;
+    const awsProfile = config.deploy.aws?.profile;
     
     // Prerequisites check
-    checkAwsPrerequisites();
+    checkAwsPrerequisites(awsProfile);
     
     console.log('\n🏗️ Starting AWS infrastructure setup...');
     console.log(`📍 Domain: ${domain}`);
     console.log(`📦 S3 Bucket: ${bucketName}`);
-    console.log(`🌍 Region: ${region}\n`);
+    console.log(`🌍 Region: ${region}`);
+    if (awsProfile) {
+      console.log(`🔑 AWS Profile: ${awsProfile}`);
+    }
+    console.log('');
     
     // Step 1: Setup Route53 hosted zone
     console.log('1️⃣ Setting up Route53 hosted zone...');
-    const { hostedZoneId, zoneDomain } = setupHostedZone(domain);
+    const { hostedZoneId, zoneDomain } = setupHostedZone(domain, awsProfile);
     
     // Step 2: Create S3 bucket
     console.log('\n2️⃣ Setting up S3 bucket...');
-    if (!checkS3Bucket(bucketName)) {
-      createS3Bucket(bucketName, region);
+    if (!checkS3Bucket(bucketName, awsProfile)) {
+      createS3Bucket(bucketName, region, awsProfile);
     }
     
-    // Step 3: Request SSL certificate
+    // Step 3: Setup SSL certificate
     console.log('\n3️⃣ Setting up SSL certificate...');
-    const { certificateArn, validationRecords } = requestSSLCertificate(domain);
+    const domains = isSubdomain(domain) ? [domain] : [domain, `www.${domain}`];
+    let certificateArn = findExistingSSLCertificate(domains, awsProfile);
     
-    // Step 4: Create DNS validation records
-    createValidationRecords(hostedZoneId, validationRecords);
+    if (!certificateArn) {
+      const { certificateArn: newCertArn, validationRecords } = await requestSSLCertificate(domain, awsProfile);
+      certificateArn = newCertArn;
+      
+      // Step 4: Create DNS validation records
+      createValidationRecords(hostedZoneId, validationRecords, awsProfile);
+      
+      // Step 5: Wait for certificate validation
+      await waitForCertificateValidation(certificateArn, awsProfile);
+    } else {
+      console.log('✓ Using existing SSL certificate');
+    }
     
-    // Step 5: Wait for certificate validation
-    await waitForCertificateValidation(certificateArn);
-    
-    // Step 6: Create CloudFront distribution
+    // Step 4: Create CloudFront distribution
     console.log('\n4️⃣ Setting up CloudFront distribution...');
-    const { distributionId, distributionDomain } = createCloudFrontDistribution(bucketName, domain, certificateArn);
+    const { distributionId, distributionDomain } = createCloudFrontDistribution(bucketName, domain, certificateArn, region, awsProfile);
     
-    // Step 7: Create DNS records
+    // Step 5: Create DNS records
     console.log('\n5️⃣ Setting up DNS records...');
-    createDNSRecords(hostedZoneId, domain, distributionDomain);
+    createDNSRecords(hostedZoneId, domain, distributionDomain, awsProfile);
     
-    // Step 8: Update configuration
+    // Step 6: Update configuration
     updateConfigFile(domain, distributionId);
     
     // Success!
