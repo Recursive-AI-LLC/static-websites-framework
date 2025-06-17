@@ -1,6 +1,6 @@
 # Recursive Static Website Framework (RSWF)
 
-The Recursive Static Website Fraweork is a static website framework built on Vite, Tailwind CSS, and Alpine JS, leveraging Handlebars for templating. It is an opinionated framework that is optimized for use with Recursive AI Bots.
+The Recursive Static Website Framework is a static website framework built on Vite, Tailwind CSS v3, and Alpine JS, leveraging Handlebars for templating. It is an opinionated framework that is optimized for use with Recursive AI Bots.
 
 ## General Principles
 

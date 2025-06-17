@@ -214,15 +214,10 @@ async function uploadFileWithMetadata(filePath, bucketName, bucketKey, profile =
       contentEncoding = 'gzip';
     }
     
-    // Build the AWS CLI arguments array exactly like the working test
+    // Build the AWS CLI arguments array
     const awsArgs = [];
     
-    // Add profile if specified (must come first)
-    if (profile) {
-      awsArgs.push('--profile', profile);
-    }
-    
-    // Add the command
+    // Add the command first
     awsArgs.push('s3api', 'put-object');
     
     // Add the main parameters
@@ -248,6 +243,11 @@ async function uploadFileWithMetadata(filePath, bucketName, bucketKey, profile =
       cacheControl = 'public, max-age=86400';
     }
     awsArgs.push('--cache-control', cacheControl);
+    
+    // Add profile LAST if specified
+    if (profile) {
+      awsArgs.push('--profile', profile);
+    }
     
     // Execute using spawnSync with argument array (no shell parsing issues)
     const result = spawnSync('aws', awsArgs, {
@@ -316,8 +316,7 @@ async function uploadFiles(config, profile = null) {
   // Create upload tasks
   const uploadTasks = allFiles.map(filePath => {
     const relativePath = path.relative(distPath, filePath);
-    const bucketKey = relativePath.replace(/\\\\/g, '/'); // Convert Windows paths to S3 format
-    
+    const bucketKey = relativePath.replace(/\\/g, '/'); // Convert Windows paths to S3 format
     return async () => {
       try {
         const result = await uploadFileWithMetadata(filePath, bucketName, bucketKey, profile);
@@ -490,8 +489,8 @@ async function deploy() {
 
     await uploadFiles(config, awsProfile);
 
-    // Set cache control headers
-    await setCacheControlHeaders(config, awsProfile);
+    // Cache control headers are already set during upload, no need to set them again
+    // await setCacheControlHeaders(config, awsProfile);
 
     // Invalidate CloudFront cache
     await invalidateCloudFront(config, awsProfile);
